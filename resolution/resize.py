@@ -1,23 +1,36 @@
-
 import cv2 as cv
-import sys
 import os
 
-print("Current working directory:", os.getcwd())
+PHOTO_DIR = "../photos"
+OUTPUT_DIR = "../resolution"
 
-photos_dir = "../photos"
+TARGET_WIDTH = 640
 
-for filename in os.listdir(photos_dir):
-    img_path = os.path.join(photos_dir, filename)
-    img = cv.imread(img_path)
-    
+for filename in os.listdir(PHOTO_DIR):
+    if not filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        continue
+
+    input_path = os.path.join(PHOTO_DIR, filename)
+    img = cv.imread(input_path)
+
     if img is None:
-        sys.exit("Could not read the image.")
-    
-    resized_image = cv.resize(img, (640, 853), dst=None, fx=0, fy=0, interpolation=cv.INTER_LINEAR)
-    
+        print(f"Could not read: {filename}")
+        continue
+
+    height, width , channels = img.shape
+
+    scale = width / TARGET_WIDTH
+    new_height = round(height / scale)
+
+    resized = cv.resize(
+        img, 
+        (TARGET_WIDTH, new_height),
+        interpolation=cv.INTER_LINEAR
+    )
+
     name, ext = os.path.splitext(filename)
-    filename = f"../resolution/{name}-640x853.jpg"
-    
-    cv.imwrite(filename, resized_image)
-    print(f"Image saved to {filename}")
+    output_name = f"{name}-640x{new_height}.png"
+    output_path = os.path.join(OUTPUT_DIR, output_name)
+
+    cv.imwrite(output_path, resized)
+    print(f"Saved {output_name}")
